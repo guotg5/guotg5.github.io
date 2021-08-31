@@ -17,8 +17,9 @@
   <meta name="description" content="愿世界化为沧海">
   <meta name="author" content="Sky">
   <meta name="keywords" content="">
+  <meta name="referrer" content="no-referrer" />
   
-  <title>Sky. - Sky.</title>
+  <title>Netty入门（一）：ByteBuf - Sky.</title>
 
   <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/css/bootstrap.min.css" />
 
@@ -163,7 +164,7 @@
       <div class="full-bg-img">
         <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
           <div class="page-header text-center fade-in-up">
-            <span class="h2" id="subtitle" title="Sky.">
+            <span class="h2" id="subtitle" title="Netty入门（一）：ByteBuf">
               
             </span>
 
@@ -185,7 +186,7 @@
     
     <span class="post-meta mr-2">
       <i class="iconfont icon-chart"></i>
-      0 字
+      1.7k 字
     </span>
   
 
@@ -195,12 +196,20 @@
       <i class="iconfont icon-clock-fill"></i>
       
       
-      1
+      36
        分钟
     </span>
   
 
   
+  
+    
+      <!-- 不蒜子统计文章PV -->
+      <span id="busuanzi_container_page_pv" style="display: none">
+        <i class="iconfont icon-eye" aria-hidden="true"></i>
+        <span id="busuanzi_value_page_pv"></span> 次
+      </span>
+    
   
 </div>
 
@@ -225,10 +234,124 @@
         <div class="py-5" id="board">
           <article class="post-content mx-auto">
             <!-- SEO header -->
-            <h1 style="display: none">Sky.</h1>
+            <h1 style="display: none">Netty入门（一）：ByteBuf</h1>
             
             <div class="markdown-body">
-              
+              <blockquote>
+<p>​    网络数据的基本单位总是字节。Java NIO 提供了 ByteBuffer 作为它的字节容器，但是这个类使用起来过于复杂，而且也有些繁琐。Netty 的 ByteBuffer 替代品是 ByteBuf，一个强大的实现，既解决了 JDK API 的局限性，又为网络应用程序的开发者提供了更好的 API</p>
+<p>Netty系列索引：</p>
+<p><a target="_blank" rel="noopener" href="https://www.cnblogs.com/hystrix/p/15103649.html">1.Netty入门（一）：ByteBuf</a></p>
+<p><a target="_blank" rel="noopener" href="https://www.cnblogs.com/hystrix/p/15105300.html">2.Netty入门（二）：Channel</a></p>
+</blockquote>
+<h2 id="ByteBuf优势"><a href="#ByteBuf优势" class="headerlink" title="ByteBuf优势"></a>ByteBuf优势</h2><ul>
+<li>它可以被用户自定义的缓冲区类型扩展</li>
+<li>通过内置的复合缓冲区类型实现了透明的零拷贝</li>
+<li>容量可以按需增长</li>
+<li>在读和写这两种模式之间切换不需要调用 ByteBuffer 的 flip()方法</li>
+<li>读和写使用了不同的索引</li>
+<li>支持方法的链式调用</li>
+<li>支持引用计数</li>
+<li>支持池化</li>
+</ul>
+<h2 id="ByteBuf实现原理"><a href="#ByteBuf实现原理" class="headerlink" title="ByteBuf实现原理"></a>ByteBuf实现原理</h2><p><img src="https://img2020.cnblogs.com/blog/1775845/202108/1775845-20210805151519851-1187851347.png" srcset="/img/loading.gif" lazyload alt="img"></p>
+<p>如图ByteBuf通维护了两个不同的索引：一个用于读取，一个用于写入。</p>
+<p>当你从 ByteBuf 读取时，它的 readerIndex 将会被递增已经被读取的字节数。同样地，当你写入 ByteBuf 时，它的writerIndex 也会被递增</p>
+<p><img src="https://img2020.cnblogs.com/blog/1775845/202108/1775845-20210805150315046-922530702.png" srcset="/img/loading.gif" lazyload alt="img"></p>
+<p>当调用readBytes时，readIndex会相应移动length位，如果readIndex移动后大于writeIndex则会抛异常。</p>
+<p><img src="https://img2020.cnblogs.com/blog/1775845/202108/1775845-20210805150840601-1389027729.png" srcset="/img/loading.gif" lazyload alt="img"></p>
+<p>当调用writeBytes时，writeIndex会相应移动length位，且通过ensureWritable方法实现自动扩容</p>
+<h4 id="其他常用API"><a href="#其他常用API" class="headerlink" title="其他常用API"></a>其他常用API</h4><table>
+<thead>
+<tr>
+<th>getBytes</th>
+<th>获取可读字节数组</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>setBytes</td>
+<td>写入字节</td>
+</tr>
+<tr>
+<td>discardReadBytes</td>
+<td>废弃已读字节</td>
+</tr>
+<tr>
+<td>mark</td>
+<td>标记index</td>
+</tr>
+<tr>
+<td>reset</td>
+<td>将index重置到之前标记的位置（配合mark使用）</td>
+</tr>
+<tr>
+<td>isReadable</td>
+<td>如果至少有一个字节可供读取，则返回 true</td>
+</tr>
+<tr>
+<td>isWritable</td>
+<td>如果至少有一个字节可被写入，则返回 true</td>
+</tr>
+<tr>
+<td>readableBytes</td>
+<td>返回可被读取的字节数</td>
+</tr>
+<tr>
+<td>writableBytes</td>
+<td>返回可被写入的字节数</td>
+</tr>
+<tr>
+<td>capacity</td>
+<td>返回 ByteBuf 可容纳的字节数。在此之后，它会尝试再次扩展直到达到 maxCapacity()</td>
+</tr>
+<tr>
+<td>maxCapacity</td>
+<td>返回 ByteBuf 可以容纳的最大字节数</td>
+</tr>
+<tr>
+<td>hasArray</td>
+<td>如果 ByteBuf 由一个字节数组支撑，则返回 true</td>
+</tr>
+<tr>
+<td>array</td>
+<td>如果 ByteBuf 由一个字节数组支撑则返回该数组；否则，它将抛出一个UnsupportedOperationException 异常</td>
+</tr>
+</tbody></table>
+<h2 id="ByteBuf缓冲分类"><a href="#ByteBuf缓冲分类" class="headerlink" title="ByteBuf缓冲分类"></a><strong>ByteBuf缓冲分类</strong></h2><p><strong>1、Heap buffer(堆缓冲区)：</strong></p>
+<p>就是将数据存在JVM堆空间中，在没有被池化的情况可以快速分配和释放。</p>
+<p>优点：由于数据是存储在JVM堆中，因此可以快速的创建与快速的释放，并且它提供了直接访问内部字节数组的方法。</p>
+<p>缺点：每次读写数据时，都需要先将数据复制到直接缓冲区中再进行网路传输。</p>
+<p><strong>2、Direct buffer(直接缓冲区)：</strong></p>
+<p>直接缓冲区，在堆外直接分配内存空间，直接缓冲区并不会占用堆的容量空间，因为它是由操作系统在本地内存进行的数据分配。</p>
+<p>优点：在使用Socket进行数据传递时，性能非常好，因为数据直接位于操作系统的本地内存中，所以不需要从JVM将数据复制到直接缓冲区中 。</p>
+<p>缺点：因为Direct Buffer是直接在操作系统内存中的，所以内存空间的分配与释放要比堆空间更加复杂，而且速度要慢一些。</p>
+<p>注意：</p>
+<p>如果你的数据包含在一个在堆上的分配的缓冲区中，那么事实上，在通过套接字发送他之前，jvm将会在内部把你的缓冲区复制到一个直接缓冲区中；这样分配释放就比较浪费资源；</p>
+<p>建议：</p>
+<p>直接缓冲区并不支持通过字节数组的方式来访问数据。对于后端业务的消息编解码来说，推荐使用HeapByteBuf；对于I/O通信线程在读写缓冲区时，推荐使用DirectByteBuf；</p>
+<p><strong>3、Composite Buffer 复合缓冲区:</strong></p>
+<p>可以拥有以上两种的缓冲区，通过一种聚合视图来操作底层持有的多种类型Buffer。这种缓冲，jdk nio是没有这种特性的。</p>
+<h2 id="ByteBuf主要实现类"><a href="#ByteBuf主要实现类" class="headerlink" title="ByteBuf主要实现类"></a><strong>ByteBuf主要</strong>实现类</h2><p>pooled：池化，重用ByteBuf对象</p>
+<p>Direct：直接内存，内部通过ByteBuffer实现，典型装饰模式</p>
+<p>Heap：堆内存，内部持有byte数组</p>
+<p><strong>（1）UnpooledDirectByteBuf：</strong></p>
+<p>在堆外进行内存分配的非内存池ByteBuf，内部持有ByteBuffer对象，相关操作委托给ByteBuffer实现。</p>
+<p><strong>（2）UnpooledHeapByteBuf：</strong></p>
+<p>基于堆内存分配非内存池ByteBuf，即内部持有byte数组。</p>
+<p><strong>（3）UnpooledUnsafeDirectByteBuf：</strong></p>
+<p>和另外一个类UnpooledDirectByteBuf差不多相同，区别在于UnpooledUnsafeDirectByteBuf内部使用基于PlatformDependent相关操作实现ByteBuf，依赖平台。</p>
+<p><strong>（4）ReadOnlyByteBufferBuf：</strong></p>
+<p>只读ByteBuf，内部持有ByteBuffer对象，相关操作委托给ByteBuffer实现，该ByteBuf限内部使用；</p>
+<p><strong>（5）FixedCompositeByteBuf：</strong></p>
+<p>用于将多个ByteBuf组合在一起，形成一个虚拟的只读ByteBuf对象，不允许写入和动态扩展。内部使用Object[]将多个ByteBuf组合在一起，一旦FixedCompositeByteBuf对象构建完成，则不会被更改。</p>
+<p><strong>（6）CompositeByteBuf：</strong></p>
+<p>用于将多个ByteBuf组合在一起，形成一个虚拟的ByteBuf对象，支持读写和动态扩展。内部使用List组合多个ByteBuf。一般使用使用ByteBufAllocator的compositeBuffer()方法，Unpooled的工厂方法compositeBuffer()或wrappedBuffer(ByteBuf… buffers)创建CompositeByteBuf对象。</p>
+<p><strong>（7）PooledByteBuf：</strong></p>
+<p>基于内存池的ByteBuf，主要为了重用ByteBuf对象，提升内存的使用效率；适用于高负载，高并发的应用中。主要有PooledDirectByteBuf，PooledHeapByteBuf，PooledUnsafeDirectByteBuf三个子类，PooledDirectByteBuf是在堆外进行内存分配的内存池ByteBuf，PooledHeapByteBuf是基于堆内存分配内存池ByteBuf，PooledUnsafeDirectByteBuf也是在堆外进行内存分配的内存池ByteBuf，区别在于PooledUnsafeDirectByteBuf内部使用基于PlatformDependent相关操作实现ByteBuf，具有平台相关性。</p>
+<h2 id="ByteBufHolder"><a href="#ByteBufHolder" class="headerlink" title="ByteBufHolder"></a>ByteBufHolder</h2><p>利用组合的方式对ByteBuf进行扩展。实际应用中我们经常发现，除了实际的数据负载之外，我们还需要存储各种属性值。HTTP 响应便是一个很好的例子，除了表示为字节的内容，还包括状态码、cookie 等。为了处理这种常见的用例，Netty 提供了 ByteBufHolder。ByteBufHolder 也为 Netty 的高级特性提供了支持，如缓冲区池化，其中可以从池中借用 ByteBuf，并且在需要时自动释放。</p>
+<h2 id="ByteBufAllocator"><a href="#ByteBufAllocator" class="headerlink" title="ByteBufAllocator"></a>ByteBufAllocator</h2><p>为了降低分配和释放内存的开销，Netty 通过 ByteBufAllocator 实现了（ByteBuf 的）池化，它可以用来分配我们所描述过的任意类型的 ByteBuf 实例。Netty提供了两种ByteBufAllocator的实现：PooledByteBufAllocator和UnpooledByteBufAllocator。前者池化了ByteBuf的实例以提高性能并最大限度地减少内存碎片。</p>
+<p><img src="https://img2020.cnblogs.com/blog/1775845/202108/1775845-20210805162035739-1058907462.png" srcset="/img/loading.gif" lazyload alt="img"></p>
+<h2 id="ReferenceCounted"><a href="#ReferenceCounted" class="headerlink" title="ReferenceCounted"></a>ReferenceCounted</h2><p>类似GC引用计数法，Netty中ByteBuf和ByteBufHolder都实现了该接口，其主要通过方法retain(release)来增加(减少)资源被引用的次数，当引用为0时，代表该资源可以被释放。</p>
+
             </div>
             <hr>
             <div>
