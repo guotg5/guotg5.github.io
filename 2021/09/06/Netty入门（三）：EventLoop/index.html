@@ -233,16 +233,16 @@
 <p><a target="_blank" rel="noopener" href="https://www.cnblogs.com/hystrix/p/15109264.html">1.Java基础（一）：I/O多路复用模型及Linux中的应用</a></p>
 </blockquote>
 <p>上文提到，早期基于线程的网络模型，处理高并发的能力非常差，随着请求数量的增多，必须不断新建线程，随之带来的问题就是服务器资源被占满、上下文切换成本过高以及IO阻塞导致的CPU浪费。</p>
-<p><img src="https://2020.cnblogs.com/blog/1775845/202108/1775845-20210810143654715-766160099.png" srcset="/img/loading.gif" lazyload></p>
+<p><img src="https://img2020.cnblogs.com/blog/1775845/202108/1775845-20210810143654715-766160099.png" srcset="/img/loading.gif" lazyload></p>
 <p>而Netty则使用了经典Reactor模型，并重新进行了封装，包括EventLoop、EventGroup等。</p>
 <h2 id="EventLoopGroup"><a href="#EventLoopGroup" class="headerlink" title="EventLoopGroup"></a>EventLoopGroup</h2><p>EventLoopGroup是一个接口，继承自线程池EventExecutorGroup，并允许注册channel到自身所持有的EventLoop，同时支持按一定规则获取下一个EventLoop。</p>
 <p>EventLoopGroup的具体实现有很多，下面以DefaultEventLoopGroup为例，简述一下我的理解</p>
-<p><img src="https://2020.cnblogs.com/blog/1775845/202108/1775845-20210810155508901-288031159.png" srcset="/img/loading.gif" lazyload></p>
+<p><img src="https://img2020.cnblogs.com/blog/1775845/202108/1775845-20210810155508901-288031159.png" srcset="/img/loading.gif" lazyload></p>
 <h3 id="1-ScheduledExecutorService"><a href="#1-ScheduledExecutorService" class="headerlink" title="1.ScheduledExecutorService"></a>1.ScheduledExecutorService</h3><p>JDK接口，一个延迟或定时任务的执行器，其实现类ScheduledThreadPoolExecutor主要是利用了延时队列及设置下次执行时间来实现的，这里不再赘述（可以单独开个专题0.0）</p>
 <h3 id="2-EventExecutorGroup"><a href="#2-EventExecutorGroup" class="headerlink" title="2.EventExecutorGroup"></a>2.EventExecutorGroup</h3><p>接口，Netty自定义的一个线程池，负责复用EventExecutor和执行任务</p>
-<p><img src="https://2020.cnblogs.com/blog/1775845/202108/1775845-20210810161156200-577630208.png" srcset="/img/loading.gif" lazyload></p>
+<p><img src="https://img2020.cnblogs.com/blog/1775845/202108/1775845-20210810161156200-577630208.png" srcset="/img/loading.gif" lazyload></p>
 <h3 id="3-EventLoopGroup"><a href="#3-EventLoopGroup" class="headerlink" title="3.EventLoopGroup"></a>3.EventLoopGroup</h3><p>核心接口，EventLoopGroup继承自EventExecutorGroup，代表他是一个线程池。同时他具备将channel注册到EventExecutorGroup的功能，代表他是一个能够真正处理Channel的特殊线程池</p>
-<p><img src="https://2020.cnblogs.com/blog/1775845/202108/1775845-20210810161126765-393951390.png" srcset="/img/loading.gif" lazyload></p>
+<p><img src="https://img2020.cnblogs.com/blog/1775845/202108/1775845-20210810161126765-393951390.png" srcset="/img/loading.gif" lazyload></p>
 <h3 id="4-MultithreadEventExecutorGroup（AbstractEventExecutorGroup）"><a href="#4-MultithreadEventExecutorGroup（AbstractEventExecutorGroup）" class="headerlink" title="4.MultithreadEventExecutorGroup（AbstractEventExecutorGroup）"></a>4.MultithreadEventExecutorGroup（AbstractEventExecutorGroup）</h3><p>抽象类，实现自EventExecutorGroup接口，提供了一个简易线程池的实现，其只有一个抽象方法newChild（创建EventExecutor）供子类实现</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">protected</span> <span class="hljs-title">MultithreadEventExecutorGroup</span><span class="hljs-params">(<span class="hljs-keyword">int</span> nThreads, Executor executor, EventExecutorChooserFactory chooserFactory, Object... args)</span></span><br></code></pre></td></tr></table></figure>
 
@@ -264,7 +264,7 @@
 
 <p>可以看出当线程数是2的n次幂时，Netty通过与运算优化了效率</p>
 <h3 id="5-MultithreadEventLoopGroup"><a href="#5-MultithreadEventLoopGroup" class="headerlink" title="5.MultithreadEventLoopGroup"></a>5.MultithreadEventLoopGroup</h3><p>抽象类，继承自MultithreadEventExecutorGroup并实现了EventLoopGroup接口，代表此抽象类是一个可以注册并处理channel的线程池</p>
-<p><img src="https://2020.cnblogs.com/blog/1775845/202108/1775845-20210810171809022-1946064477.png" srcset="/img/loading.gif" lazyload></p>
+<p><img src="https://img2020.cnblogs.com/blog/1775845/202108/1775845-20210810171809022-1946064477.png" srcset="/img/loading.gif" lazyload></p>
 <p>值得关注的是next方法，他把返回值的类型，进一步限定为EventLoop</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">public</span> EventLoop <span class="hljs-title">next</span><span class="hljs-params">()</span> </span>&#123;<br>    <span class="hljs-keyword">return</span> (EventLoop) <span class="hljs-keyword">super</span>.next();<br>&#125;<br></code></pre></td></tr></table></figure>
 
@@ -273,11 +273,11 @@
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">protected</span> EventLoop <span class="hljs-title">newChild</span><span class="hljs-params">(Executor executor, Object... args)</span> <span class="hljs-keyword">throws</span> Exception </span>&#123;<br>    <span class="hljs-keyword">return</span> <span class="hljs-keyword">new</span> DefaultEventLoop(<span class="hljs-keyword">this</span>, executor);<br>&#125;<br></code></pre></td></tr></table></figure>
 
 <h3 id="7-总结"><a href="#7-总结" class="headerlink" title="7.总结"></a>7.总结</h3><p>说白了EventLoopGroup核心方法，register负责将channel与线程池中某一线程绑定，next负责返回下一个线程供调用方执行任务</p>
-<p><img src="https://2020.cnblogs.com/blog/1775845/202108/1775845-20210810144640266-409878451.png" srcset="/img/loading.gif" lazyload></p>
+<p><img src="https://img2020.cnblogs.com/blog/1775845/202108/1775845-20210810144640266-409878451.png" srcset="/img/loading.gif" lazyload></p>
 <h2 id="EventLoop"><a href="#EventLoop" class="headerlink" title="EventLoop"></a>EventLoop</h2><p>EventLoop直译为事件循环，他的职责简单来说就是绑定一个唯一的线程，去执行或调度被分配的任务。</p>
 <p>可见一个EventLoop实例可以为多个channel服务，而为了最大化利用资源，Netty使用池化技术将EventLoop放入EventLoopGroup中管理。</p>
 <p>EventLoop的具体实现有很多，先看下DefaultEventLoop的类图，会发现他和DefaultEventLoopGroup的类图很像，都继承了EventLoopGroup接口，但其最大的不同是红框所示，他还继承了EventExecutor，下面主要讲一下多出来的这部分到底是干了什么</p>
-<p><img src="https://2020.cnblogs.com/blog/1775845/202108/1775845-20210810173443968-945079597.png" srcset="/img/loading.gif" lazyload></p>
+<p><img src="https://img2020.cnblogs.com/blog/1775845/202108/1775845-20210810173443968-945079597.png" srcset="/img/loading.gif" lazyload></p>
 <h3 id="1-EventExecutor"><a href="#1-EventExecutor" class="headerlink" title="1.EventExecutor"></a>1.EventExecutor</h3><p>接口，定义了一个事件执行器，主要方法如下</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-comment">/**</span><br><span class="hljs-comment"> * 直接返回自身</span><br><span class="hljs-comment"> */</span><br><span class="hljs-meta">@Override</span><br><span class="hljs-function">EventExecutor <span class="hljs-title">next</span><span class="hljs-params">()</span></span>;<br><br><span class="hljs-comment">/**</span><br><span class="hljs-comment"> * 返回所属线程池</span><br><span class="hljs-comment"> */</span><br><span class="hljs-function">EventExecutorGroup <span class="hljs-title">parent</span><span class="hljs-params">()</span></span>;<br><br><span class="hljs-comment">/**</span><br><span class="hljs-comment"> * 判断当前线程是否是当前EventLoop绑定的线程</span><br><span class="hljs-comment"> */</span><br><span class="hljs-function"><span class="hljs-keyword">boolean</span> <span class="hljs-title">inEventLoop</span><span class="hljs-params">()</span></span>;<br><br><span class="hljs-comment">/**</span><br><span class="hljs-comment"> * 判断传入线程是否是当前EventLoop绑定的线程</span><br><span class="hljs-comment"> */</span><br><span class="hljs-function"><span class="hljs-keyword">boolean</span> <span class="hljs-title">inEventLoop</span><span class="hljs-params">(Thread thread)</span></span>;<br></code></pre></td></tr></table></figure>
 
