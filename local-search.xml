@@ -4,7 +4,7 @@
   
   
   <entry>
-    <title>Netty入门（一）：ByteBuf</title>
+    <title>Netty入门（三）：EventLoop</title>
     <link href="/2021/09/06/Netty%E5%85%A5%E9%97%A8%EF%BC%88%E4%B8%89%EF%BC%89%EF%BC%9AEventLoop/"/>
     <url>/2021/09/06/Netty%E5%85%A5%E9%97%A8%EF%BC%88%E4%B8%89%EF%BC%89%EF%BC%9AEventLoop/</url>
     
