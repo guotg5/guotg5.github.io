@@ -1,0 +1,575 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=&#34;auto&#34;>
+
+
+
+<head>
+  <meta charset="UTF-8">
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/favicon.png">
+  <link rel="icon" href="/img/favicon.png">
+  <meta name="viewport"
+        content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="description" content="愿世界化为沧海">
+  <meta name="author" content="Sky">
+  <meta name="keywords" content="">
+  <meta name="referrer" content="no-referrer" />
+  
+  <title>Java基础（一）：I/O多路复用模型及Linux中的应用 - Sky.</title>
+
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/css/bootstrap.min.css" />
+
+
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/github-markdown-css@4.0.0/github-markdown.min.css" />
+  <link  rel="stylesheet" href="/lib/hint/hint.min.css" />
+
+  
+    
+    
+      
+      <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/highlight.js@10.7.2/styles/github-gist.min.css" />
+    
+  
+
+  
+    <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3.5.7/dist/jquery.fancybox.min.css" />
+  
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1749284_ba1fz6golrf.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1736178_kmeydafke9r.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+<!-- 自定义样式保持在最底部 -->
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    var CONFIG = {"hostname":"guotg5.github.io","root":"/","version":"1.8.11","typing":{"enable":true,"typeSpeed":40,"cursorChar":"_","loop":false},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"right","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"copy_btn":true,"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"baidu":null,"google":null,"gtag":null,"tencent":{"sid":null,"cid":null},"woyaola":null,"cnzz":null,"leancloud":{"app_id":"8gBaHMW2Vq0sgbTqOwgjj719-gzGzoHsz","app_key":"fWRrrnRUiM4xj8km2qYGtRcM","server_url":"https://8gbahmw2.lc-cn-n1-shared.com"}},"search_path":"/local-search.xml"};
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+<meta name="generator" content="Hexo 5.4.0"></head>
+
+
+<body>
+  <header style="height: 70vh;">
+    <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand"
+       href="/">&nbsp;<strong>Sky.</strong>&nbsp;</a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/">
+                <i class="iconfont icon-home-fill"></i>
+                首页
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/">
+                <i class="iconfont icon-archive-fill"></i>
+                归档
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/">
+                <i class="iconfont icon-category-fill"></i>
+                分类
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/">
+                <i class="iconfont icon-tags-fill"></i>
+                标签
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" data-toggle="modal" data-target="#modalSearch">&nbsp;<i
+                class="iconfont icon-search"></i>&nbsp;</a>
+          </li>
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self">&nbsp;<i
+                class="iconfont icon-dark" id="color-toggle-icon"></i>&nbsp;</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+    <div class="banner" id="banner" parallax=true
+         style="background: url('https://source.unsplash.com/random/1920x1080') no-repeat center center;
+           background-size: cover;">
+      <div class="full-bg-img">
+        <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+          <div class="page-header text-center fade-in-up">
+            <span style="white-space: pre-wrap;" class="h2" id="subtitle" title="Java基础（一）：I/O多路复用模型及Linux中的应用">
+              
+            </span>
+
+            
+              <div class="mt-3">
+  
+  
+    <span class="post-meta">
+      <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+      <time datetime="2021-09-07 14:58" pubdate>
+        2021年9月7日 下午
+      </time>
+    </span>
+  
+</div>
+
+<div class="mt-1">
+  
+    
+    <span class="post-meta mr-2">
+      <i class="iconfont icon-chart"></i>
+      2.4k 字
+    </span>
+  
+
+  
+    
+    <span class="post-meta mr-2">
+      <i class="iconfont icon-clock-fill"></i>
+      
+      
+      52
+       分钟
+    </span>
+  
+
+  
+  
+    
+      <!-- LeanCloud 统计文章PV -->
+      <span id="leancloud-page-views-container" class="post-meta" style="display: none">
+        <i class="iconfont icon-eye" aria-hidden="true"></i>
+        <span id="leancloud-page-views"></span> 次
+      </span>
+    
+  
+</div>
+
+            
+          </div>
+
+          
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="d-none d-lg-block col-lg-2"></div>
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div class="py-5" id="board">
+          <article class="post-content mx-auto">
+            <!-- SEO header -->
+            <h1 style="display: none">Java基础（一）：I/O多路复用模型及Linux中的应用</h1>
+            
+            <div class="markdown-body">
+              <blockquote>
+<p>IO多路复用模型广泛的应用于各种高并发的中间件中，那么区别于其他模式他的优势是什么、其核心设计思想又是什么、其在Linux中是如何实现的？</p>
+</blockquote>
+<h2 id="I-O模型"><a href="#I-O模型" class="headerlink" title="I/O模型"></a>I/O模型</h2><p>I/O模型主要有以下五种：</p>
+<ol>
+<li>同步阻塞I/O：I/O操作将同步阻塞用户线程</li>
+<li>同步非阻塞I/O：所有操作都会立即返回，但需要不断轮询获取I/O结果</li>
+<li>I/O多路复用：一个线程监听多个I/O操作是否就绪，依然是阻塞I/O，需要不断去轮询是否有就绪的fd</li>
+<li>信号驱动I/O：当I/O就绪后，操作系统发送SIGIO信号通知对应进程，避免空轮询导致占用CPU（linux中的信号驱动本质还是使用的epoll）</li>
+<li>异步I/O：应用告知内核启动某个操作，并让内核在整个操作完成之后，通知应用，这种模型与信号驱动模型的主要区别在于，信号驱动IO只是由内核通知我们可以开始下一个IO操作，而异步IO模型是由内核通知我们操作什么时候完成</li>
+</ol>
+<p><img src="https://img2020.cnblogs.com/blog/1775845/202108/1775845-20210806141039296-263027358.png" srcset="/img/loading.gif" lazyload></p>
+<blockquote>
+<p><a target="_blank" rel="noopener" href="https://www.jianshu.com/p/486b0965c296">聊聊Linux 五种IO模型</a></p>
+</blockquote>
+<p>其中应用最广的当属I/O多路复用模型，其核心就是基于Reactor设计模式，仅一个线程就可以监听多个I/O事件，使得在高并发场景下节约大量线程资源</p>
+<h2 id="Reactor设计模式"><a href="#Reactor设计模式" class="headerlink" title="Reactor设计模式"></a>Reactor设计模式</h2><p>处理WEB通常有两种请求模型：</p>
+<ol>
+<li>基于线程：每个请求都创建一个线程来处理。并发越高，线程数越多，内存占用越高，性能也会越低，线程上下文切换造成性能损耗，线程等待IO也会浪费CPU时间。一般应用于并发量少的小型应用。</li>
+<li>事件驱动：每个请求都由Reactor线程监听，当I/O就绪后，由Reactor将任务分发给对用的Handler。</li>
+</ol>
+<p>显然事件驱动模型更适用于目前动辄几十万并发的场景。</p>
+<p>网络服务器的基本处理模型如下：建立连接-&gt;读取请求-&gt;解析请求-&gt;处理服务-&gt;编码结果-&gt;返回结果。</p>
+<p>基于网络服务器的基本模型，Reactor衍生出了以下三种模型。</p>
+<p><strong>1.单线程模型</strong></p>
+<p><img src="https://img2020.cnblogs.com/blog/1775845/202108/1775845-20210806145615573-1068551815.png" srcset="/img/loading.gif" lazyload></p>
+<p>Reactor单线程模型，指的是所有的I/O操作都在同一个NIO线程上面完成，NIO线程的职责如下：</p>
+<ul>
+<li>作为NIO服务端，接收客户端的TCP连接</li>
+<li>作为NIO客户端，向服务端发起TCP连接</li>
+<li>读取通信对端的请求或者应答消息</li>
+<li>向通信对端发送消息请求或者应答消息</li>
+</ul>
+<p>Reactor线程负责多路分离套接字，Accept新连接，并分派请求到处理器链中。该模型 适用于处理器链中业务处理组件能快速完成的场景。不过，这种单线程模型不能充分利用多核资源，所以实际使用的不多。</p>
+<p><strong>2.多线程模型</strong></p>
+<p><img src="https://img2020.cnblogs.com/blog/1775845/202108/1775845-20210806150000856-388343563.png" srcset="/img/loading.gif" lazyload></p>
+<p>Reactor多线程模型与单线程模型最大区别就是引入了线程池，负责异步调用Handler处理业务，从而使其不会阻塞Reactor，它的流程如下：</p>
+<ol>
+<li>Reactor 对象通过 select 监控客户端请求事件，收到事件后，通过 dispatch 进行分发</li>
+<li>如果是建立连接请求，则由 Acceptor 通过 accept 处理连接请求，然后创建一个 Handler 对象处理完成连接后的各种事件</li>
+<li>如果不是连接请求，则由 Reactor 对象会分发调用连接对应的 Handler 来处理</li>
+<li>Handler 只负责响应事件，不做具体的业务处理，通过 read 读取数据后，会分发给后面的 Worker 线程池的某个线程处理业务</li>
+<li>Worker 线程池会分配独立线程完成真正的业务，并将结果返回给 Handler</li>
+<li>Handler 收到响应后，通过 send 将结果返回给 Client</li>
+</ol>
+<p><strong>3.主从多线程模型</strong></p>
+<p><img src="https://img2020.cnblogs.com/blog/1775845/202108/1775845-20210806150127457-1350338900.png" srcset="/img/loading.gif" lazyload></p>
+<p>将连接请求句柄和数据传输句柄分开处理，使用单独的Reactor来处理连接请求句柄，提高数据传送句柄的处理能力。</p>
+<p>服务端用于接收客户端连接的不再是1个单独的NIO线程，而是一个独立的NIO线程池。Acceptor接收到客户端TCP连接请求处理完成后（可能包含接入认证等），将新创建的SocketChannel注册到I/O线程池（sub reactor线程池）的某个I/O线程上，由它负责SocketChannel的读写和编解码工作。</p>
+<p>著名的Netty即采用了此种模式</p>
+<h2 id="Linux中的I-O多路复用"><a href="#Linux中的I-O多路复用" class="headerlink" title="Linux中的I/O多路复用"></a>Linux中的I/O多路复用</h2><p>linux实现I/O多路复用，主要涉及三个函数select、poll、epoll，目前前两个已经基本不用了，但作为面试必考点还是应该知晓其原理。</p>
+<p>几个重要概念：</p>
+<ol>
+<li>用户空间和内核空间：为保护linux系统，将可能导致系统崩溃的指令定义为R0级别，仅允许在内核空间的进程使用，而普通应用则运行在用户空间，当应用需要执行R0级别指令时需要由用户态切换到内核态（极其耗时）。</li>
+<li>文件描述符(File descriptor)：当应用程序请求内核打开/新建一个文件时，内核会返回一个文件描述符用于对应这个打开/新建的文件，其fd本质上就是一个非负整数。实际上，它是一个索引值，指向内核为每一个进程所维护的该进程打开文件的记录表。</li>
+</ol>
+<p><strong>select</strong></p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs javascript">int select(int maxfd1,			<span class="hljs-comment">// 最大文件描述符个数,传输的时候需要+1</span><br>		   fd_set *readset,	<span class="hljs-comment">// 读描述符集合</span><br>		   fd_set *writeset,	<span class="hljs-comment">// 写描述符集合</span><br>		   fd_set *exceptset,	<span class="hljs-comment">// 异常描述符集合</span><br>		   <span class="hljs-keyword">const</span> struct timeval *timeout);<span class="hljs-comment">// 超时时间</span><br></code></pre></td></tr></table></figure>
+
+<p>select通过数组存储用户关心的fd并通知内核，内核将fd集合拷贝至内核空间，遍历后将就绪的fd集合返回</p>
+<p>其缺点主要有以下几点：</p>
+<ol>
+<li>最大支持的fd_size为1024（有争议？），远远不足以支撑高并发场景</li>
+<li>每次涉及fd集合用户态到内核态切换，开销巨大</li>
+<li>遍历fd的时间复杂度为O(n)，性能并不好</li>
+</ol>
+<p><strong>poll</strong></p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><code class="hljs javascript">int poll(struct pollfd *fds, 	        <span class="hljs-comment">// fd的文件集合改成自定义结构体,不再是数组的方式,不受限于FD_SIZE</span><br>		 unsigned long nfds,     <span class="hljs-comment">// 最大描述符个数</span><br>				int timeout);<span class="hljs-comment">// 超时时间</span><br><br>struct pollfd &#123;<br>	int fd;			<span class="hljs-comment">// fd索引值</span><br>	short events;		<span class="hljs-comment">// 输入事件</span><br>	short revents;		<span class="hljs-comment">// 结果输出事件</span><br>&#125;;<br></code></pre></td></tr></table></figure>
+
+<p>poll技术与select技术实现逻辑基本一致,重要区别在于其使用链表的方式存储描述符fd,不受数组大小影响</p>
+<p>说白了对于select的缺点poll只解决了第一点，依然存在很大性能问题</p>
+<p><strong>epoll</strong></p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><code class="hljs javascript"><span class="hljs-comment">// 创建保存epoll文件描述符的空间,该空间也称为“epoll例程”</span><br>int epoll_create(int size);    <span class="hljs-comment">// 使用链表,现在已经弃用</span><br>int epoll_create(int flag);    <span class="hljs-comment">// 使用红黑树的数据结构</span><br><br><span class="hljs-comment">// epoll注册/修改/删除 fd的操作</span><br>long epoll_ctl(int epfd,                        <span class="hljs-comment">// 上述epoll空间的fd索引值</span><br>               int op,                         <span class="hljs-comment">// 操作识别，EPOLL_CTL_ADD |  EPOLL_CTL_MOD  |  EPOLL_CTL_DEL</span><br>               int fd,                          <span class="hljs-comment">// 注册的fd</span><br>               struct epoll_event *event);      <span class="hljs-comment">// epoll监听事件的变化</span><br>struct epoll_event &#123;<br>	__poll_t events;<br>	__u64 data;<br>&#125; EPOLL_PACKED;<br><br><span class="hljs-comment">// epoll等待，与select/poll的逻辑一致</span><br>epoll_wait(int epfd,                            <span class="hljs-comment">// epoll空间</span><br>           struct epoll_event *events,           <span class="hljs-comment">// epoll监听事件的变化</span><br>           int maxevents,                        <span class="hljs-comment">// epoll可以保存的最大事件数</span><br>        int timeout);                         <span class="hljs-comment">// 超时时间</span><br></code></pre></td></tr></table></figure>
+
+<p>为了解决select&amp;poll技术存在的两个性能问题，epoll应运而生</p>
+<ol>
+<li>通过epoll_create函数创建epoll空间(相当于一个容器管理)，在内核中存储需要监听的数据集合，通过红黑树实现，插入删除的时间复杂度为O(nlogn)</li>
+<li>通过epoll_ctl函数来注册对socket事件的增删改操作，并且在内核底层通过利用mmap技术保证用户空间与内核空间对该内存是具备可见性，直接通过指针引用的方式进行操作，避免了大内存数据的拷贝导致的空间切换性能问题</li>
+<li>通过ep_poll_callback回调函数，将就绪的fd插入双向链表fd中，避免通过轮询的方式获取，事件复杂度为O(1)</li>
+<li>通过epoll_wait函数的方式阻塞获取rdlist中就绪的fd</li>
+</ol>
+<p>EPOLL事件有两种模型 Level Triggered (LT) 和 Edge Triggered (ET)：</p>
+<ol>
+<li>LT(level triggered，水平触发模式)是缺省的工作方式，并且同时支持 block 和 non-block socket。在这种做法中，内核告诉你一个文件描述符是否就绪了，然后你可以对这个就绪的fd进行IO操作。如果你不作任何操作，内核还是会继续通知你的，所以，这种模式编程出错误可能性要小一点。</li>
+<li>ET(edge-triggered，边缘触发模式)是高速工作方式，只支持no-block socket。在这种模式下，当描述符从未就绪变为就绪时，内核通过epoll告诉你。然后它会假设你知道文件描述符已经就绪，并且不会再为那个文件描述符发送更多的就绪通知，等到下次有新的数据进来的时候才会再次出发就绪事件。</li>
+</ol>
+<blockquote>
+<p>Don’t let emotion cloud your judgment.<br>不要让情绪影响你的判断。</p>
+</blockquote>
+
+            </div>
+            <hr>
+            <div>
+              <div class="post-metas mb-3">
+                
+                  <div class="post-meta mr-3">
+                    <i class="iconfont icon-category"></i>
+                    
+                      <a class="hover-with-bg" href="/categories/Java/">Java</a>
+                    
+                  </div>
+                
+                
+                  <div class="post-meta">
+                    <i class="iconfont icon-tags"></i>
+                    
+                      <a class="hover-with-bg" href="/tags/Java/">Java</a>
+                    
+                      <a class="hover-with-bg" href="/tags/IO/">IO</a>
+                    
+                      <a class="hover-with-bg" href="/tags/Linux/">Linux</a>
+                    
+                  </div>
+                
+              </div>
+              
+                <p class="note note-warning">
+                  
+                    本博客所有文章除特别声明外，均采用 <a target="_blank" href="https://creativecommons.org/licenses/by-sa/4.0/deed.zh" rel="nofollow noopener noopener">CC BY-SA 4.0 协议</a> ，转载请注明出处！
+                  
+                </p>
+              
+              
+                <div class="post-prevnext">
+                  <article class="post-prev col-6">
+                    
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2021/09/06/Netty%E5%85%A5%E9%97%A8%EF%BC%88%E4%B8%89%EF%BC%89%EF%BC%9AEventLoop/">
+                        <span class="hidden-mobile">Netty入门（三）：EventLoop</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+              <!-- Comments -->
+              <article class="comments" id="comments" lazyload>
+                
+                  
+                
+                
+  <div id="valine"></div>
+  <script type="text/javascript">
+    Fluid.utils.loadComments('#valine', function() {
+      Fluid.utils.createScript('https://cdn.jsdelivr.net/npm/valine@1.4.14/dist/Valine.min.js', function() {
+        var options = Object.assign(
+          {"appId":"8gBaHMW2Vq0sgbTqOwgjj719-gzGzoHsz","appKey":"fWRrrnRUiM4xj8km2qYGtRcM","placeholder":"说点什么","path":"window.location.pathname","avatar":"retro","meta":["nick","mail","link"],"pageSize":10,"lang":"zh-CN","highlight":false,"recordIP":false,"serverURLs":"","emojiCDN":null,"emojiMaps":null,"enableQQ":false,"requiredFields":[]},
+          {
+            el: "#valine",
+            path: window.location.pathname
+          }
+        )
+        new Valine(options);
+      });
+    });
+  </script>
+  <noscript>Please enable JavaScript to view the comments</noscript>
+
+
+              </article>
+            
+          </article>
+        </div>
+      </div>
+    </div>
+    
+      <div class="d-none d-lg-block col-lg-2 toc-container" id="toc-ctn">
+        <div id="toc">
+  <p class="toc-header"><i class="iconfont icon-list"></i>&nbsp;目录</p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+      </div>
+    
+  </div>
+</div>
+
+<!-- Custom -->
+
+
+    
+
+    
+      <a id="scroll-top-button" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v"
+                 for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+
+    
+  </main>
+
+  <footer class="text-center mt-5 py-3">
+  <div class="footer-content">
+     <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span><i class="iconfont icon-love"></i></span></a> 
+  </div>
+  
+  <div class="statistics">
+    
+    
+
+    
+      
+        <!-- LeanCloud 统计PV -->
+        <span id="leancloud-site-pv-container" style="display: none">
+            总访问量 
+            <span id="leancloud-site-pv"></span>
+             次
+          </span>
+      
+      
+        <!-- LeanCloud 统计UV -->
+        <span id="leancloud-site-uv-container" style="display: none">
+            总访客数 
+            <span id="leancloud-site-uv"></span>
+             人
+          </span>
+      
+
+    
+  </div>
+
+
+  
+
+  
+</footer>
+
+
+  <!-- SCRIPTS -->
+  
+  <script  src="https://cdn.jsdelivr.net/npm/nprogress@0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/nprogress@0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://cdn.jsdelivr.net/npm/jquery@3.6.0/dist/jquery.min.js" ></script>
+<script  src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+<!-- Plugins -->
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+  
+
+
+
+  <script  src="https://cdn.jsdelivr.net/npm/tocbot@4.12.3/dist/tocbot.min.js" ></script>
+
+
+
+  <script  src="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3.5.7/dist/jquery.fancybox.min.js" ></script>
+
+
+
+  <script  src="https://cdn.jsdelivr.net/npm/anchor-js@4.3.1/anchor.min.js" ></script>
+
+
+
+  <script defer src="https://cdn.jsdelivr.net/npm/clipboard@2.0.8/dist/clipboard.min.js" ></script>
+
+
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+
+  <script defer src="/js/leancloud.js" ></script>
+
+
+
+  <script  src="https://cdn.jsdelivr.net/npm/typed.js@2.0.12/lib/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var title = document.getElementById('subtitle').title;
+      
+      typing(title)
+      
+    })(window, document);
+  </script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<!-- 主题的启动项 保持在最底部 -->
+<script  src="/js/boot.js" ></script>
+
+
+</body>
+</html>
